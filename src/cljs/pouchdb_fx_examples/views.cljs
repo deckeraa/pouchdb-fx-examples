@@ -77,10 +77,6 @@
     (fn []
       [:div
        [:p (str "chunks-atom: ") chunks-atom]
-       (when-let [blob @blob-atom]
-         (println "blob for audio element: " blob)
-         [:audio {:src (js/window.URL.createObjectURL blob)
-                  :controls true}])
        [:button {:on-click (fn [e]
                              (when-let [recorder @recorder-atom]
                                (reset! chunks-atom []) ;; clear out previous chunks
@@ -91,8 +87,24 @@
                              (when-let [recorder @recorder-atom]
                                (.stop recorder)
                                (println "stopped recording")))}
-        "Stop recording"
-        ]])))
+        "Stop recording"]
+       (when-let [blob @blob-atom]
+         (println "blob for audio element: " blob)
+         [:div
+          [:audio {:src (js/window.URL.createObjectURL blob)
+                   :controls true}]
+          [:button {:on-click
+                    #(re-frame/dispatch
+                      [:pouchdb {:db "example"
+                                 :method :put-attachment
+                                 :doc {:_id "doc-with-attachment"}
+                                 :attachment-id "sound.ogg"
+                                 :attachment blob
+                                 :attachment-type "audio/ogg"
+                                 :success (fn [e] (println ":put-attachment success" e))
+                                 :failure (fn [e] (println ":put-attachment failure" e))}])}
+           "Save recording as an attachment"]])
+       ])))
 
 (defn list-docs []
   (let [docs (re-frame/subscribe [::subs/docs])]
