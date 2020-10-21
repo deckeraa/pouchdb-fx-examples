@@ -11,8 +11,3 @@
  ::docs
  (fn [db]
    (:docs db)))
-
-;; (re-frame/reg-sub
-;;  ::attachment
-;;  (fn [db]
-;;    (:attachment db)))

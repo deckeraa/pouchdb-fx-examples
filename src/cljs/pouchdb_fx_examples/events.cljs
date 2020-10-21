@@ -36,12 +36,6 @@
    (let [docs (mapv :doc (:rows all-docs))]
      {:db (assoc db :docs docs)})))
 
-;; (re-frame/reg-event-fx
-;;  :pouchdb-store-attachment
-;;  (fn [{:keys [db]} [_ attachment]]
-;;    (println "got attachment: " attachment)
-;;    {:db (assoc db :attachment attachment)}))
-
 (re-frame/reg-event-db
  ::initialize-db
  (fn-traced [_ _]
