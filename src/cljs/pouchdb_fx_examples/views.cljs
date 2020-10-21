@@ -118,23 +118,38 @@
        [:ul (map (fn [x] ^{:key (:_id x)} [:li (str x)]) @docs)])]))
 
 (defn attachment-player []
-  (let [blob-atom (reagent/atom nil)]
+  (let [blob-atom (reagent/atom nil)
+        read-failed (reagent/atom nil)]
     (fn []
-      [:div
-       [:h3 "This will play the audio attached to the doc with id doc-with-attachment"]
-       (when-let [blob @blob-atom]
-         [:audio {:src (js/window.URL.createObjectURL blob)
-                  :controls true}])
-       [:button {:on-click
-                 #(re-frame/dispatch
-                   [:pouchdb {:db "example"
-                              :method :get-attachment
-                              :doc {:_id "doc-with-attachment"}
-                              :attachment-id "sound.ogg"
-                              :success (fn [attachment]
-                                         (println "Got x: " attachment)
-                                         (reset! blob-atom attachment))}])} "Get attachment"]
-       ])))
+      (let [docs (re-frame/subscribe [::subs/docs])
+            doc  (or (first (filter #(= (:_id %) "doc-with-attachment") @docs))
+                     {:_id "doc-with-attachment"})]
+        [:div
+         [:h3 "This will play the audio attached to the doc with id doc-with-attachment"]
+         (when-let [blob @blob-atom]
+           [:audio {:src (js/window.URL.createObjectURL blob)
+                    :controls true}])
+         [:button {:on-click
+                   (fn []
+                     (reset! read-failed nil)
+                     (re-frame/dispatch
+                      [:pouchdb {:db "example"
+                                 :method :get-attachment
+                                 :doc doc
+                                 :attachment-id "sound.ogg"
+                                 :success (fn [attachment]
+                                            (println "Got x: " attachment)
+                                            (reset! blob-atom attachment))
+                                 :failure #(reset! read-failed %)}]))} "Get attachment"]
+         (when-let [fail-msg @read-failed]
+           [:p {} "Couldn't read the attachment " (str fail-msg)])
+         [:button {:on-click #(re-frame/dispatch
+                               [:pouchdb {:db "example"
+                                          :method :remove-attachment
+                                          :doc doc
+                                          :attachment-id "sound.ogg"}])}
+          "Remove attachment."]
+         ]))))
 
 (defn main-panel []
   [:div
