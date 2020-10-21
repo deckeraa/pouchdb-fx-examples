@@ -114,9 +114,29 @@
        [:p "Database is empty."]
        [:ul (map (fn [x] ^{:key (:_id x)} [:li (str x)]) @docs)])]))
 
+(defn attachment-player []
+  (let [blob-atom (reagent/atom nil)]
+    (fn []
+      [:div
+       [:h3 "This will play the audio attached to the doc with id doc-with-attachment"]
+       (when-let [blob @blob-atom]
+         [:audio {:src (js/window.URL.createObjectURL blob)
+                  :controls true}])
+       [:button {:on-click
+                 #(re-frame/dispatch
+                   [:pouchdb {:db "example"
+                              :method :get-attachment
+                              :doc {:_id "doc-with-attachment"}
+                              :attachment-id "sound.ogg"
+                              :success (fn [attachment]
+                                         (println "Got x: " attachment)
+                                         (reset! blob-atom attachment))}])} "Get attachment"]
+       ])))
+
 (defn main-panel []
   [:div
    [create-note]
    [demo-put]
    [put-attachment-demo]
+   [attachment-player]
    [list-docs]])
