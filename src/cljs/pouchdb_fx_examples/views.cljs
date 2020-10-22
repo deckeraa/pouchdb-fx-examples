@@ -3,6 +3,7 @@
    [reagent.core :as reagent]
    [re-frame.core :as re-frame]
    [pouchdb-fx-examples.subs :as subs]
+   [com.stronganchortech.pouchdb-fx :as pouchdb-fx]
    ))
 
 ;; (defn create-note []
@@ -151,10 +152,61 @@
           "Remove attachment."]
          ]))))
 
+(defn sync-login []
+  (let [username (reagent/atom "")
+        password (reagent/atom "")]
+    (fn []
+      [:div {}
+       [:h3 {} "Configure syncing"]
+       [:div
+        [:label {:class "ma1"} "Username: "]
+        [:input {:type :text :value @username
+                 :on-change #(reset! username (-> % .-target .-value))}]]
+       [:div
+        [:label {:class "ma1"} "Password: "]
+        [:input {:type :password :value @password
+                 :on-change #(reset! password (-> % .-target .-value))}]]
+       [:button {:on-click
+                 (fn [e]
+                   (re-frame/dispatch
+                    ;; [:pouchdb {:db "example"
+                    ;;                              :method :sync!
+                    ;;                              }]
+                    [:pouchdb
+                     {:db "example"
+                      :method :sync!
+                      :target-url (str "http://" @username ":" @password "@localhost:5984/example")
+                      :options {:live true}
+                      :handlers
+                      {:change #(re-frame/dispatch [:load-from-pouch])
+                       :complete #(re-frame/dispatch [:load-from-pouch])}
+                      }]
+                    )) ;;#(re-frame/dispatch [:sync @username @password])
+                 ;;;; You can call the library directly if you would like
+                 ;; (fn [e]
+                 ;;   (pouchdb-fx/sync!
+                 ;;    "example" (str "http://" @username ":" @password "@localhost:5984/example")
+                 ;;    {:live true}
+                 ;;    {:change (fn [v]
+                 ;;               (println "change: " v)
+                 ;;               (re-frame/dispatch [:load-from-pouch]))
+                 ;;     :complete (fn [v]
+                 ;;                 (println "complete: " v)
+                 ;;                 (re-frame/dispatch [:load-from-pouch]))
+                 ;;     :error  #(println "error: " %)}))
+                 }
+        "Sync"]
+       [:button {:on-click #(re-frame/dispatch [:pouchdb {:method :cancel-sync!
+                                                          :db "example"}])}
+        "Cancel Sync"]
+       [:button {:on-click (fn [] (println (keys (pouchdb-fx/db-obj "example"))))}
+        "db-obj"]])))
+
 (defn main-panel []
   [:div
    [create-note]
    [demo-put]
    [put-attachment-demo]
    [attachment-player]
+   [sync-login]
    [list-docs]])
