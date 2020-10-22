@@ -116,7 +116,19 @@
      [:h3 "All documents in the example database"]
      (if (empty? @docs)
        [:p "Database is empty."]
-       [:ul (map (fn [x] ^{:key (:_id x)} [:li (str x)]) @docs)])]))
+       [:ul (map (fn [doc]
+                   ^{:key (:_id doc)}
+                   [:li
+                    (str doc)
+                    [:button {:on-click (fn [e]
+                                          (re-frame/dispatch
+                                           [:pouchdb
+                                            {:db "example"
+                                             :method :remove
+                                             :doc doc
+                                             :failure #(fn [e] (println "Failed to delete: " e))}]))}
+                     "Delete"]])
+                 @docs)])]))
 
 (defn attachment-player []
   (let [blob-atom (reagent/atom nil)
