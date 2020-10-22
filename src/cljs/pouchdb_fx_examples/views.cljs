@@ -169,9 +169,6 @@
        [:button {:on-click
                  (fn [e]
                    (re-frame/dispatch
-                    ;; [:pouchdb {:db "example"
-                    ;;                              :method :sync!
-                    ;;                              }]
                     [:pouchdb
                      {:db "example"
                       :method :sync!
@@ -181,7 +178,7 @@
                       {:change #(re-frame/dispatch [:load-from-pouch])
                        :complete #(re-frame/dispatch [:load-from-pouch])}
                       }]
-                    )) ;;#(re-frame/dispatch [:sync @username @password])
+                    ))
                  ;;;; You can call the library directly if you would like
                  ;; (fn [e]
                  ;;   (pouchdb-fx/sync!
@@ -202,6 +199,27 @@
        [:button {:on-click (fn [] (println (keys (pouchdb-fx/db-obj "example"))))}
         "db-obj"]])))
 
+(defn document-getter []
+  (let [returned-doc (reagent/atom nil)
+        id (reagent/atom nil)]
+    (fn []
+      [:div
+       [:h3 "Document Getter"]
+       [:label "ID: "]
+       [:input {:type :text :value @id :on-change #(reset! id (-> % .-target .-value))}]
+       [:button {:on-click (fn []
+                             (re-frame/dispatch
+                              [:pouchdb
+                               {:db "example"
+                                :method :get
+                                :doc-id @id
+                                :options {:conflicts true
+                                          :revs true}
+                                :success #(reset! returned-doc %)
+                                }]))}
+        "Get the document"]
+       [:p "Returned doc: " @returned-doc]])))
+
 (defn main-panel []
   [:div
    [create-note]
@@ -209,4 +227,5 @@
    [put-attachment-demo]
    [attachment-player]
    [sync-login]
+   [document-getter]
    [list-docs]])
