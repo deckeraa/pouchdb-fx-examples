@@ -262,6 +262,15 @@
         "Get the document"]
        [:p "Returned doc: " @returned-doc]])))
 
+(defn test-close []
+  [:div
+   [:h3 "Testing close()"]
+   [:button {:on-click (fn [] (re-frame/dispatch
+                               [:pouchdb
+                                {:db "example"
+                                 :method :close
+                                 :success #(println "Closed the database")}]))} "close"]])
+
 (defn main-panel []
   [:div
    [create-note]
