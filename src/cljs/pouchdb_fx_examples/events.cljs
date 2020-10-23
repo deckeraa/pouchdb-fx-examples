@@ -9,13 +9,23 @@
 (defonce setup-watcher
   (do
     (println "setting up the watcher")
-    (pouchdb-fx/attach-change-watcher!
-     "example"
-     {:since "now" :live true}
-     (fn [v]
-       (println "Calling :load-from-pouch from the change watcher.")
-       (re-frame/dispatch [:load-from-pouch])
-       ))))
+    (re-frame/dispatch
+     [:pouchdb
+      {:method :attach-change-watcher!
+       :db "example"
+       :options {:since "now" :live true}
+       :handler (fn [v]
+                  (println "Calling :load-from-pouch from the change watcher.")
+                  (re-frame/dispatch [:load-from-pouch]))}])
+    ;; You can also call this directly from the library:
+    ;; (pouchdb-fx/attach-change-watcher!
+    ;;  "example"
+    ;;  {:since "now" :live true}
+    ;;  (fn [v]
+    ;;    (println "Calling :load-from-pouch from the change watcher.")
+    ;;    (re-frame/dispatch [:load-from-pouch])
+    ;;    ))
+    ))
 
 (re-frame/reg-event-fx
  :load-from-pouch

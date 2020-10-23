@@ -22,7 +22,8 @@
                              [:pouchdb
                               {:db "example"
                                :method :post
-                               :doc {:type "note" :text @text}}])}
+                               :doc {:type "note" :text @text}
+                               }])}
         "Create document"]])))
 
 (defn demo-put []
@@ -184,7 +185,7 @@
                     [:pouchdb
                      {:db "example"
                       :method :sync!
-                      :target-url (str "http://" @username ":" @password "@localhost:5984/example")
+                      :target (str "http://" @username ":" @password "@localhost:5984/example")
                       :options {:live true}
                       :handlers
                       {:change #(re-frame/dispatch [:load-from-pouch])
@@ -210,6 +211,35 @@
         "Cancel Sync"]
        [:button {:on-click (fn [] (println (keys (pouchdb-fx/db-obj "example"))))}
         "db-obj"]])))
+
+(defn test-replication []
+  (let [outbound? (reagent/atom true)
+        username (reagent/atom "")
+        password (reagent/atom "")]
+    (fn []
+      [:div
+       [:h3 "Test one-shot replication"]
+       [:div
+        [:label {:class "ma1"} "Username: "]
+        [:input {:type :text :value @username
+                 :on-change #(reset! username (-> % .-target .-value))}]]
+       [:div
+        [:label {:class "ma1"} "Password: "]
+        [:input {:type :password :value @password
+                 :on-change #(reset! password (-> % .-target .-value))}]]
+       [:p "Replication: " (if @outbound? "outbound" "inbound")]
+       [:label "Remote url: "]
+       ;; [:input {:type :text :value @remote :on-change #(reset! remote (-> % .-target .-value))}]
+       [:button {:on-click (fn [e]
+                             (swap! outbound? (fn [x] (if x false true))))}
+        "Toggle replication direction."]
+       [:button {:on-click #(re-frame/dispatch [:pouchdb
+                                                {:db "example"
+                                                 :method :replicate
+                                                 :target (str "http://" @username ":" @password "@localhost:5984/example")
+                                                 :outbound? @outbound?
+                                                 :handlers {:change (fn [x] (println "change: " x))}}])}
+        "Call replicate()"]])))
 
 (defn document-getter []
   (let [returned-doc (reagent/atom nil)
@@ -239,5 +269,6 @@
    [put-attachment-demo]
    [attachment-player]
    [sync-login]
+   [test-replication]
    [document-getter]
    [list-docs]])
