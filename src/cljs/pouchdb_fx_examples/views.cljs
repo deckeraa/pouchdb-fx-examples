@@ -262,14 +262,25 @@
         "Get the document"]
        [:p "Returned doc: " @returned-doc]])))
 
-(defn test-close []
+(defn test-various-db-ops []
   [:div
-   [:h3 "Testing close()"]
+   [:h3 "Testing various DB ops"]
    [:button {:on-click (fn [] (re-frame/dispatch
                                [:pouchdb
                                 {:db "example"
                                  :method :close
-                                 :success #(println "Closed the database")}]))} "close"]])
+                                 :success #(println "Closed the database")}]))} "close"]
+   [:button {:on-click (fn [] (re-frame/dispatch
+                               [:pouchdb
+                                {:db "example"
+                                 :method :info
+                                 :success #(println "DB info: " %)}]))} "info"]
+   [:button {:on-click (fn [] (re-frame/dispatch
+                               [:pouchdb
+                                {:db "example"
+                                 :method :compact
+                                 :success #(println "Compaction succeeded: " %)
+                                 :failure #(println "Compaction failed: " %)}]))} "compact"]])
 
 (defn main-panel []
   [:div
@@ -280,4 +291,5 @@
    [sync-login]
    [test-replication]
    [document-getter]
+   [test-various-db-ops]
    [list-docs]])
