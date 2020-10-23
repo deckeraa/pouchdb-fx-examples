@@ -309,6 +309,22 @@
         "Run revsDiff"]
        [:p (str "Results: " @result)]])))
 
+(defn test-bulk-get []
+  (let [result (reagent/atom nil)]
+    (fn []
+      [:div
+       [:h3 "Testing bulkGet"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :bulkGet
+                                     :options {:docs [{:id "poem-1"} {:id "doc-with-attachment"}]
+                                               :binary true}
+                                     :success #(reset! result %)
+                                     }]))}
+        "bulkGet"]
+       [:p {} (str "Result: " @result)]])))
+
 (defn main-panel []
   [:div
    [create-note]
@@ -320,4 +336,5 @@
    [document-getter]
    [test-various-db-ops]
    [test-doc-revs-diff]
+   [test-bulk-get]
    [list-docs]])
