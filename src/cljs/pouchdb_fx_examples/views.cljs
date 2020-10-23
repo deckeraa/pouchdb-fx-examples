@@ -282,6 +282,33 @@
                                  :success #(println "Compaction succeeded: " %)
                                  :failure #(println "Compaction failed: " %)}]))} "compact"]])
 
+(defn test-doc-revs-diff []
+  (let [doc-id (reagent/atom "")
+        rev-1  (reagent/atom "")
+        rev-2  (reagent/atom "")
+        result (reagent/atom nil)]
+    (fn []
+      [:div
+       [:h3 "Testing revsDiff"]
+       [:ul {:style {:list-style :none}}
+        [:li
+         [:label "doc-id"]
+         [:input {:type :text :style {:width "30em"} :value @doc-id :on-change #(reset! doc-id (-> % .-target .-value))}]]
+        [:li
+         [:label "rev-1"]
+         [:input {:type :text :style {:width "30em"} :value @rev-1 :on-change #(reset! rev-1 (-> % .-target .-value))}]]
+        [:li
+         [:label "rev-2"]
+         [:input {:type :text :style {:width "30em"} :value @rev-2 :on-change #(reset! rev-2 (-> % .-target .-value))}]]]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :revsDiff
+                                     :diff {@doc-id [@rev-1 @rev-2]}
+                                     :success #(reset! result %)}]))}
+        "Run revsDiff"]
+       [:p (str "Results: " @result)]])))
+
 (defn main-panel []
   [:div
    [create-note]
@@ -292,4 +319,5 @@
    [test-replication]
    [document-getter]
    [test-various-db-ops]
+   [test-doc-revs-diff]
    [list-docs]])
