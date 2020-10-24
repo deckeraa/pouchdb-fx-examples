@@ -4,6 +4,8 @@
    [re-frame.core :as re-frame]
    [pouchdb-fx-examples.subs :as subs]
    [com.stronganchortech.pouchdb-fx :as pouchdb-fx]
+   ["pouchdb" :as pouchdb]
+   ["pouchdb-find" :as pouchdb-find]
    ))
 
 ;; (defn create-note []
@@ -325,6 +327,54 @@
         "bulkGet"]
        [:p {} (str "Result: " @result)]])))
 
+(defn test-indices []
+  (let [retrieved-indices (reagent/atom "")]
+    (fn []
+      [:div
+       [:h3 "Testing indices"]
+       [:button {:on-click #(pouchdb/plugin pouchdb-find)} "Instantiate pouchdb-find"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :createIndex
+                                     :index {:index {:fields ["text"]}}
+                                     :success #(println "success: " %)
+                                     :failure #(println "failure: " %)}]))} "Create index"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :getIndexes
+                                     :success #(reset! retrieved-indices %)
+                                     :failure #(println "failure: " %)}]))}
+        "Get indices"]
+       [:p (str "Retrieved indices: " @retrieved-indices)]
+       (when (and @retrieved-indices
+                  (> (:total_rows @retrieved-indices) 1))
+         [:button {:on-click (fn [] (re-frame/dispatch
+                                     [:pouchdb
+                                      {:db "example"
+                                       :method :deleteIndex
+                                       :index (last (:indexes @retrieved-indices))
+                                       :success #(println "success: " %)
+                                       :failure #(println "failure: " %)}]))}
+          "Delete the last index listed by getIndexes"])
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :find
+                                     :request {:selector {:text {:$regex ".*fox.*"}}}
+                                     :success #(println "success: " %)
+                                     :failure #(println "failure: " %)}]))}
+        "Run find"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :explain
+                                     :request {:selector {:text {:$regex ".*fox.*"}}}
+                                     :success #(println "success: " %)
+                                     :failure #(println "failure: " %)}]))}
+        "Run explain"]])))
+
 (defn main-panel []
   [:div
    [create-note]
@@ -337,4 +387,5 @@
    [test-various-db-ops]
    [test-doc-revs-diff]
    [test-bulk-get]
+   [test-indices]
    [list-docs]])
