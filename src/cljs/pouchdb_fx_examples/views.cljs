@@ -365,7 +365,7 @@
                                      :request {:selector {:text {:$regex ".*fox.*"}}}
                                      :success #(println "success: " %)
                                      :failure #(println "failure: " %)}]))}
-        "Run find"]
+        "Run find and print to console"]
        [:button {:on-click (fn [] (re-frame/dispatch
                                    [:pouchdb
                                     {:db "example"
@@ -373,7 +373,46 @@
                                      :request {:selector {:text {:$regex ".*fox.*"}}}
                                      :success #(println "success: " %)
                                      :failure #(println "failure: " %)}]))}
-        "Run explain"]])))
+        "Run explain and print to console"]
+       [:h3 "Testing map/reduce functions"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :post
+                                     :doc {:_id "_design/text"
+                                           :views
+                                           {:text
+                                            {:map "function mapFun(doc){
+                                                    if (doc.text) {
+                                                       emit(doc.text);
+                                                    }}"}}}
+                                     ;; Here's an example of chaining together PouchDB actions
+                                     :success (fn [] (re-frame/dispatch
+                                                      [:pouchdb
+                                                       {:db "example"
+                                                        :method :query
+                                                        :map-reduce-fn "text"
+                                                        :success #(println "success: " %)
+                                                        :failure #(println "failure: " %)
+                                                        }]))
+                                     :failure #(println "failure: " %)}]))}
+        "Create map/reduce doc"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :query
+                                     :map-reduce-fn "text"
+                                     :success #(println "success: " %)
+                                     :failure #(println "failure: " %)
+                                     }]))}
+        "Run map query"]
+       [:button {:on-click (fn [] (re-frame/dispatch
+                                   [:pouchdb
+                                    {:db "example"
+                                     :method :viewCleanup
+                                     :success #(println "success: " %)
+                                     :failure #(println "failure: " %)}]))}
+        "Run viewCleanup"]])))
 
 (defn main-panel []
   [:div
