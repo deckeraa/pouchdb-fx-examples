@@ -414,6 +414,11 @@
                                      :failure #(println "failure: " %)}]))}
         "Run viewCleanup"]])))
 
+(defn test-destroy []
+  [:button {:on-click #(re-frame/dispatch [:pouchdb
+                                           {:db "example"
+                                            :method :destroy}])} "Destroy"])
+
 (defn main-panel []
   [:div
    [create-note]
@@ -427,4 +432,5 @@
    [test-doc-revs-diff]
    [test-bulk-get]
    [test-indices]
-   [list-docs]])
+   [list-docs]
+   [test-destroy]])

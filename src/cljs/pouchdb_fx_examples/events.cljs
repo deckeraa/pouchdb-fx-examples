@@ -13,14 +13,14 @@
      [:pouchdb
       {:method :attach-change-watcher!
        :db "example"
-       :options {:since "now" :live true}
+       :options {:live true}
        :handler (fn [v]
                   (println "Calling :load-from-pouch from the change watcher.")
                   (re-frame/dispatch [:load-from-pouch]))}])
     ;; You can also call this directly from the library:
     ;; (pouchdb-fx/attach-change-watcher!
     ;;  "example"
-    ;;  {:since "now" :live true}
+    ;;  {:live true}
     ;;  (fn [v]
     ;;    (println "Calling :load-from-pouch from the change watcher.")
     ;;    (re-frame/dispatch [:load-from-pouch])
@@ -37,7 +37,7 @@
      :options {:include_docs true}
      :success
      (fn [v]
-       (re-frame/dispatch [:pouchdb-alldocs-success (js->clj v :keywordize-keys true)])
+       (re-frame/dispatch [:pouchdb-alldocs-success (js->clj v :keywordize-keys true)]) ;; TODO the keywordize keys might not be necessary anymore
        )}}))
 
 (re-frame/reg-event-fx
